@@ -1,6 +1,7 @@
-import { Outlet, NavLink, useLocation } from 'react-router-dom'
-import { Calculator, Tags, TrendingUp, BarChart3, Settings, Home, Target, Layers, Store } from 'lucide-react'
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Calculator, Tags, TrendingUp, BarChart3, Settings, Home, Target, Layers, Store, User, LogOut } from 'lucide-react'
 import { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
 
 const navItems = [
   { to: '/', icon: Home, label: '首页' },
@@ -16,7 +17,14 @@ const navItems = [
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const location = useLocation()
+
+  function handleLogout() {
+    logout()
+    navigate('/login')
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -37,7 +45,20 @@ export default function Layout() {
               拼多多运营计算器
             </span>
           </div>
-          <span className="text-sm text-indigo-100 hidden sm:block font-medium">V2.0</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 text-white/80 text-sm">
+              <User className="w-3.5 h-3.5" />
+              <span className="font-medium">{user?.username}</span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition-colors"
+              title="退出登录"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+            <span className="text-sm text-indigo-100 hidden sm:block font-medium">V2.0</span>
+          </div>
         </div>
       </header>
 
@@ -116,8 +137,18 @@ export default function Layout() {
         </nav>
 
         {/* 主内容区 */}
-        <main className="flex-1 p-4 sm:p-6 pb-20 lg:pb-6 overflow-auto">
-          <Outlet />
+        <main className="flex-1 p-4 sm:p-6 pb-20 lg:pb-6 overflow-auto relative">
+          {/* 水印 */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
+            <div className="flex flex-col items-center gap-4 opacity-[0.03] rotate-[-15deg]">
+              <span className="text-8xl font-black text-gray-900 whitespace-nowrap">凯峰Ai</span>
+              <span className="text-8xl font-black text-gray-900 whitespace-nowrap">凯峰Ai</span>
+              <span className="text-8xl font-black text-gray-900 whitespace-nowrap">凯峰Ai</span>
+            </div>
+          </div>
+          <div className="relative z-10">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>凯峰Ai · 管理后台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+    .header {
+      background: rgba(30, 41, 59, 0.9);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 { font-size: 20px; color: #818cf8; }
+    .header a { color: #94a3b8; text-decoration: none; font-size: 14px; }
+    .header a:hover { color: #e2e8f0; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 32px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-card {
+      background: rgba(30, 41, 59, 0.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(99, 102, 241, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .stat-card .label { font-size: 12px; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+    .stat-card .value { font-size: 28px; font-weight: 700; color: #818cf8; }
+    .section { margin-bottom: 32px; }
+    .section h2 { font-size: 16px; color: #94a3b8; margin-bottom: 12px; font-weight: 500; }
+    table {
+      width: 100%;
+      background: rgba(30, 41, 59, 0.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(99, 102, 241, 0.15);
+      border-radius: 12px;
+      overflow: hidden;
+      border-collapse: collapse;
+    }
+    th { text-align: left; padding: 12px 16px; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(99, 102, 241, 0.1); }
+    td { padding: 10px 16px; font-size: 13px; border-bottom: 1px solid rgba(99, 102, 241, 0.05); }
+    tr:last-child td { border-bottom: none; }
+    .badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-profit { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .badge-loss { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .watermark {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 120px;
+      font-weight: 900;
+      color: rgba(99, 102, 241, 0.02);
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 0;
+    }
+    .empty { text-align: center; padding: 40px; color: #475569; font-size: 14px; }
+    .refresh { color: #6366f1; cursor: pointer; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="watermark">凯峰Ai</div>
+  <div style="position:relative;z-index:1;">
+    <div class="header">
+      <h1>凯峰Ai · 管理后台</h1>
+      <div>
+        <span style="margin-right:16px;font-size:13px;color:#64748b;"><%= username %></span>
+        <a href="/admin/logout">退出</a>
+      </div>
+    </div>
+    <div class="container">
+      <div class="stats">
+        <div class="stat-card">
+          <div class="label">总用户数</div>
+          <div class="value"><%= stats.userCount %></div>
+        </div>
+        <div class="stat-card">
+          <div class="label">总快照数</div>
+          <div class="value"><%= stats.snapshotCount %></div>
+        </div>
+        <div class="stat-card">
+          <div class="label">计算次数</div>
+          <div class="value"><%= stats.calcCount %></div>
+        </div>
+        <div class="stat-card">
+          <div class="label">定时任务</div>
+          <div class="value"><%= stats.taskCount %></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>用户列表</h2>
+        <% if (users.length === 0) { %><div class="empty">暂无用户</div><% } else { %>
+        <table>
+          <thead><tr><th>ID</th><th>用户名</th><th>注册时间</th><th>计算次数</th></tr></thead>
+          <tbody>
+            <% users.forEach(u => { %>
+            <tr>
+              <td><%= u.id %></td>
+              <td><%= u.username %></td>
+              <td><%= u.created_at %></td>
+              <td><%= u.calc_count || 0 %></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <% } %>
+      </div>
+
+      <div class="section">
+        <h2>最近快照</h2>
+        <% if (snapshots.length === 0) { %><div class="empty">暂无快照</div><% } else { %>
+        <table>
+          <thead><tr><th>用户</th><th>链接名</th><th>SKU数</th><th>净利润</th><th>净利率</th><th>保本ROI</th><th>实际ROI</th><th>时间</th></tr></thead>
+          <tbody>
+            <% snapshots.forEach(s => { %>
+            <tr>
+              <td><%= s.username %></td>
+              <td><%= s.link_name %></td>
+              <td><%= s.sku_count %></td>
+              <td style="color:<%= s.total_profit >= 0 ? '#34d399' : '#f87171' %>">¥<%= Math.abs(s.total_profit).toFixed(2) %></td>
+              <td><%= s.net_margin?.toFixed(1) || 0 %>%</td>
+              <td><%= s.real_roi?.toFixed(2) || '-' %></td>
+              <td>
+                <span class="badge <%= s.actual_roi >= s.real_roi ? 'badge-profit' : 'badge-loss' %>">
+                  <%= s.actual_roi?.toFixed(2) || '-' %>
+                </span>
+              </td>
+              <td><%= s.created_at %></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
