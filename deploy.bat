@@ -1,57 +1,33 @@
 @echo off
 chcp 65001 >nul
 echo ========================================
-echo   拼多多运营计算器 - 一键部署
+echo   拼多多电商计算器 - GitHub Pages 部署
 echo ========================================
 echo.
-echo 请选择部署平台:
-echo   [1] Vercel (推荐 - 全球CDN, 自动HTTPS)
-echo   [2] Netlify (自动HTTPS, 免费)
-echo   [3] GitHub Pages (需要先push到GitHub)
-echo.
-set /p choice="请输入 1/2/3: "
+set /p repo="请输入你的GitHub仓库名（如 pdd-calculator）: "
+set /p user="请输入你的GitHub用户名: "
 
-if "%choice%"=="1" goto vercel
-if "%choice%"=="2" goto netlify
-if "%choice%"=="3" goto github
-echo 无效选择
-pause
-exit /b
-
-:vercel
 echo.
-echo 正在部署到 Vercel...
-npx vercel --prod --yes
+echo 正在推送...
+git remote remove origin 2>nul
+git remote add origin https://github.com/%user%/%repo%.git
+git push -u origin master
+
 if %errorlevel% equ 0 (
   echo.
   echo ========================================
-  echo   部署成功! 
-  echo   打开浏览器查看你的网址
-  echo ========================================
-)
-pause
-exit /b
-
-:netlify
-echo.
-echo 正在部署到 Netlify...
-npx netlify-cli deploy --prod --dir=dist
-if %errorlevel% equ 0 (
+  echo   推送成功!
+  echo   现在去 GitHub 仓库 Settings ^> Pages
+  echo   Source 选择 "GitHub Actions"
   echo.
+  echo   30秒后你的地址:
+  echo   https://%user%.github.io/%repo%/
   echo ========================================
-  echo   部署成功!
-  echo ========================================
+) else (
+  echo.
+  echo 推送失败。请确认:
+  echo   1. 已在 GitHub 创建空仓库 %repo%
+  echo   2. 仓库地址正确
+  echo   3. Git 已登录（git config --global user.name）
 )
 pause
-exit /b
-
-:github
-echo.
-echo GitHub Pages 部署步骤:
-echo   1. 在GitHub创建仓库
-echo   2. git init ^&^& git add . ^&^& git commit -m "deploy"
-echo   3. git push 到你的仓库
-echo   4. Settings ^> Pages ^> Source: GitHub Actions
-echo.
-pause
-exit /b
