@@ -33,4 +33,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/mahfoudjayantibhai/e-commerce-calculator:latest
+          tags: ghcr.io/REPO_OWNER/e-commerce-calculator:latest
