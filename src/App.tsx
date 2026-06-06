@@ -12,7 +12,7 @@ import Settings from './pages/Settings'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/dsjsq">
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Home />} />
