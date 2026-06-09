@@ -9,6 +9,7 @@ import { saveToStorage, loadFromStorage } from '../utils/calculations'
 import { useGlobalSettings } from '../context/GlobalSettings'
 import { DecimalInput } from '../components/DecimalInput'
 import { useHistoryBackfill } from '../hooks/useHistoryBackfill'
+import { useAutoSaveHistory } from '../hooks/useAutoSaveHistory'
 import type { ListingROIInput, ListingSku, SkuCostBreakdown } from '../types'
 
 const STORAGE_KEY = 'multi_sku_roi_v2'
@@ -236,6 +237,10 @@ export default function MultiSkuROI() {
   else if (actualROI_val < realROI) adjustments.push('实际投产比低于保本线，建议降低出价或优化广告素材')
   else adjustments.push('投产比在安全线以上，可持续放量')
   if (dragCount > 0) adjustments.push(`${dragCount}个拖后腿SKU建议执行"砍-提-促"三步走：砍无销量SKU、提价微利SKU、促销激活沉睡SKU`)
+
+  // 自动保存历史记录到服务端
+  const listingResult = { totalSales, totalGMV, totalAdSpend, totalCost, totalProfit, netMargin, breakevenROI: realROI, actualROI: actualROI_val, weightedAvgPrice, weightedAvgCost: totalCostGoods / totalSales || 0, summary, adjustments }
+  useAutoSaveHistory('listing-roi', input, listingResult)
 
   // ============ CSV批量导入 ============
 

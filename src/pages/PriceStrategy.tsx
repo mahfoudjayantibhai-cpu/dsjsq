@@ -4,6 +4,7 @@ import { calcPriceCompare, calcInflatedPrice, saveToStorage, loadFromStorage } f
 import { useGlobalSettings } from '../context/GlobalSettings'
 import { useDecimalInput } from '../components/DecimalInput'
 import { useHistoryBackfill } from '../hooks/useHistoryBackfill'
+import { useAutoSaveHistory } from '../hooks/useAutoSaveHistory'
 import type { CompetitorPrice, PriceCompareResult, InflatedPriceResult, StrategyType, Aggressiveness } from '../types'
 
 const STORAGE_KEY_COMPARE = 'price_compare_input'
@@ -104,6 +105,10 @@ function ComparePanel({ backfillData }: { backfillData: any }) {
   const result: PriceCompareResult | null = myPrice > 0 && myCost > 0
     ? calcPriceCompare({ myPrice, myCost, competitors: validCompetitors, platformFeeRate: settings.defaultPlatformFeeRate, returnRate: settings.defaultReturnRate })
     : null
+
+  // 自动保存历史记录到服务端
+  const compareInput = { myPrice, myCost, competitors: validCompetitors, platformFeeRate: settings.defaultPlatformFeeRate, returnRate: settings.defaultReturnRate }
+  useAutoSaveHistory('strategy', compareInput, result)
 
   const trafficLabel = result
     ? result.trafficMultiplier >= 1.2 ? '流量加权' : result.trafficMultiplier >= 0.7 ? '基准流量' : '流量受限'
@@ -323,6 +328,10 @@ function InflatedPanel({ backfillData }: { backfillData: any }) {
         miscFeeRate: settings.defaultMiscFeeRate,
       })
     : null
+
+  // 自动保存历史记录到服务端
+  const inflatedInput = { targetRealPrice, cost, strategyType, aggressiveness, returnRate: settings.defaultReturnRate, platformFeeRate: settings.defaultPlatformFeeRate, miscFeeRate: settings.defaultMiscFeeRate }
+  useAutoSaveHistory('strategy', inflatedInput, result)
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" onChange={update}>

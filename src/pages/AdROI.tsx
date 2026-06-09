@@ -3,6 +3,7 @@ import { Plus, Trash2, ArrowUpDown } from 'lucide-react'
 import { calcAdROI, saveToStorage, loadFromStorage } from '../utils/calculations'
 import { useGlobalSettings } from '../context/GlobalSettings'
 import { useHistoryBackfill } from '../hooks/useHistoryBackfill'
+import { useAutoSaveHistory } from '../hooks/useAutoSaveHistory'
 import type { AdROIInput, AdPlan } from '../types'
 
 const STORAGE_KEY = 'ad_roi'
@@ -60,6 +61,9 @@ export default function AdROI() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
 
   const result = calcAdROI(input)
+
+  // 自动保存历史记录到服务端
+  useAutoSaveHistory('ad-roi', input, result)
 
   useEffect(() => { saveToStorage(STORAGE_KEY, input) }, [input])
 

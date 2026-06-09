@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Clock, Trash2, Search, Calendar, RotateCcw } from 'lucide-react'
-import { api } from '../services/api'
+import { useHistory } from '../context/HistoryContext'
 import type { CalculationHistory } from '../types'
 import { CALC_TYPE_LABELS, CALC_TYPE_ROUTES } from '../types'
 
-type DateRange = 'today' | 'week' | 'month' | 'custom'
+type DateRange = 'today' | 'week' | 'month' | 'all' | 'custom'
 
-function getRange(range: DateRange): { start: string; end: string } {
+function getRange(range: DateRange): { start?: string; end?: string } {
   const now = new Date()
   const end = now.toISOString()
 
@@ -26,8 +26,10 @@ function getRange(range: DateRange): { start: string; end: string } {
       start.setMonth(start.getMonth() - 1)
       return { start: start.toISOString(), end }
     }
+    case 'all':
+      return {}
     default:
-      return { start: '', end: '' }
+      return {}
   }
 }
 
@@ -49,19 +51,19 @@ function getResultSummary(calcType: string, resultData: string): string {
     const r = JSON.parse(resultData)
     switch (calcType) {
       case 'roi':
-        return `保本投产比 ${r.realROI?.toFixed(2) || '-'}`
+        return `保本ROI ${r.realROI?.toFixed(2) || '-'}`
       case 'pricing':
         return `建议售价 ¥${r.suggestedPrice?.toFixed(2) || '-'}`
       case 'profit':
         return `净利润 ¥${r.netProfit?.toFixed(2) || '-'}，净利率 ${r.netMargin?.toFixed(1) || '-'}%`
       case 'ad-roi':
-        return `${r.plans?.length || 0} 个计划，加权ROI ${r.weightedAvgROI?.toFixed(2) || '-'}`
+        return `加权ROI ${r.weightedAvgROI?.toFixed(2) || '-'}`
       case 'strategy':
         return r.nominalPrice
-          ? `标价 ¥${r.nominalPrice?.toFixed(2) || '-'}，折后 ¥${r.effectiveFinalPrice?.toFixed(2) || '-'}`
-          : `竞争力 ${r.competitivenessScore || '-'} 分，排名 #${r.rank || '-'}/${r.totalCount || '-'}`
+          ? `虚高价 ¥${r.nominalPrice?.toFixed(2) || '-'}`
+          : `排名 #${r.rank || '-'}/${r.totalCount || '-'}`
       case 'listing-roi':
-        return `${r.totalSales || 0} 件，净利润 ¥${r.totalProfit?.toFixed(2) || '-'}`
+        return `净利润 ¥${r.totalProfit?.toFixed(2) || '-'}`
       default:
         return '-'
     }
@@ -84,51 +86,34 @@ function getTypeColor(type: string): string {
 
 export default function History() {
   const navigate = useNavigate()
-  const [records, setRecords] = useState<CalculationHistory[]>([])
-  const [loading, setLoading] = useState(true)
+  const { records, loading, refreshHistory, deleteRecord, clearAll } = useHistory()
   const [range, setRange] = useState<DateRange>('today')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
 
-  const fetchHistory = useCallback(async () => {
-    setLoading(true)
-    try {
-      if (range === 'custom') {
-        const data = await api.getHistory({
-          start: customStart ? new Date(customStart).toISOString() : undefined,
-          end: customEnd ? new Date(customEnd + 'T23:59:59').toISOString() : undefined,
-        })
-        setRecords(data)
-      } else {
-        const { start, end } = getRange(range)
-        const data = await api.getHistory({ start, end })
-        setRecords(data)
-      }
-    } catch {
-      setRecords([])
-    } finally {
-      setLoading(false)
-    }
-  }, [range, customStart, customEnd])
-
   useEffect(() => {
-    fetchHistory()
-  }, [fetchHistory])
+    refreshHistory()
+  }, [refreshHistory])
 
-  async function handleDelete(id: number) {
-    try {
-      await api.deleteHistory(id)
-      setRecords(prev => prev.filter(r => r.id !== id))
-    } catch { /* ignore */ }
-  }
-
-  async function handleClearAll() {
-    if (!window.confirm('确认清空全部历史记录？此操作不可恢复。')) return
-    try {
-      await api.deleteAllHistory()
-      setRecords([])
-    } catch { /* ignore */ }
-  }
+  // 前端时间过滤
+  const filteredRecords = useMemo(() => {
+    if (range === 'custom') {
+      const start = customStart ? new Date(customStart).getTime() : 0
+      const end = customEnd ? new Date(customEnd + 'T23:59:59').getTime() : Infinity
+      return records.filter(r => {
+        const t = new Date(r.created_at).getTime()
+        return t >= start && t <= end
+      })
+    }
+    const { start, end } = getRange(range)
+    if (!start && !end) return records
+    return records.filter(r => {
+      const t = new Date(r.created_at).getTime()
+      if (start && t < new Date(start).getTime()) return false
+      if (end && t > new Date(end).getTime()) return false
+      return true
+    })
+  }, [records, range, customStart, customEnd])
 
   function handleJump(record: CalculationHistory) {
     const route = CALC_TYPE_ROUTES[record.calc_type]
@@ -137,10 +122,16 @@ export default function History() {
     }
   }
 
+  function handleClearAll() {
+    if (!window.confirm('确认清空全部历史记录？此操作不可恢复。')) return
+    clearAll()
+  }
+
   const rangeTabs: { key: DateRange; label: string }[] = [
     { key: 'today', label: '今天' },
     { key: 'week', label: '本周' },
     { key: 'month', label: '本月' },
+    { key: 'all', label: '全部' },
     { key: 'custom', label: '自定义' },
   ]
 
@@ -199,7 +190,7 @@ export default function History() {
               className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
             />
             <button
-              onClick={fetchHistory}
+              onClick={refreshHistory}
               className="px-3 py-1.5 bg-indigo-500 text-white rounded-lg text-sm hover:bg-indigo-600 transition-colors flex items-center gap-1"
             >
               <Search className="w-3.5 h-3.5" />
@@ -214,7 +205,7 @@ export default function History() {
         <div className="flex items-center justify-center py-16">
           <div className="animate-spin w-6 h-6 border-2 border-indigo-400 border-t-transparent rounded-full" />
         </div>
-      ) : records.length === 0 ? (
+      ) : filteredRecords.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <Clock className="w-10 h-10 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-400 text-sm">暂无历史记录</p>
@@ -222,7 +213,7 @@ export default function History() {
         </div>
       ) : (
         <div className="space-y-2">
-          {records.map(record => (
+          {filteredRecords.map(record => (
             <div
               key={record.id}
               className="bg-white rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-sm transition-all duration-200 group"
@@ -243,13 +234,13 @@ export default function History() {
                   <button
                     onClick={() => handleJump(record)}
                     className="p-2 rounded-lg text-indigo-500 hover:bg-indigo-50 transition-colors flex items-center gap-1 text-sm"
-                    title="跳转回填"
+                    title="回填参数"
                   >
                     <RotateCcw className="w-4 h-4" />
                     <span className="hidden sm:inline text-xs">回填</span>
                   </button>
                   <button
-                    onClick={() => handleDelete(record.id)}
+                    onClick={() => deleteRecord(record.id)}
                     className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
                     title="删除"
                   >
@@ -262,9 +253,9 @@ export default function History() {
         </div>
       )}
 
-      {records.length > 0 && (
+      {filteredRecords.length > 0 && (
         <p className="text-center text-xs text-gray-400">
-          共 {records.length} 条记录，点击「回填」可跳转到计算器并自动填充参数
+          显示 {filteredRecords.length} 条（共 {records.length} 条），点击「回填」可跳转到计算器并自动填充参数
         </p>
       )}
     </div>

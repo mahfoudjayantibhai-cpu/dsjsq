@@ -4,6 +4,7 @@ import { calcProfit, saveToStorage, loadFromStorage } from '../utils/calculation
 import { useGlobalSettings } from '../context/GlobalSettings'
 import { useDecimalInput } from '../components/DecimalInput'
 import { useHistoryBackfill } from '../hooks/useHistoryBackfill'
+import { useAutoSaveHistory } from '../hooks/useAutoSaveHistory'
 import type { ProfitInput, ProfitLevel } from '../types'
 
 const STORAGE_KEY = 'profit'
@@ -41,6 +42,9 @@ export default function ProfitAnalysis() {
   }, [backfillData])
 
   const result = calcProfit(input)
+
+  // 自动保存历史记录到服务端
+  useAutoSaveHistory('profit', input, result)
 
   useEffect(() => { saveToStorage(STORAGE_KEY, input) }, [input])
   const update = useCallback((patch: Partial<ProfitInput>) => setInput(prev => ({ ...prev, ...patch })), [])

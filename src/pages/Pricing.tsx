@@ -4,6 +4,7 @@ import { calcPricing, saveToStorage, loadFromStorage } from '../utils/calculatio
 import { useGlobalSettings } from '../context/GlobalSettings'
 import { useDecimalInput } from '../components/DecimalInput'
 import { useHistoryBackfill } from '../hooks/useHistoryBackfill'
+import { useAutoSaveHistory } from '../hooks/useAutoSaveHistory'
 import type { PricingInput, PricingMode } from '../types'
 
 const STORAGE_KEY = 'pricing'
@@ -35,6 +36,9 @@ export default function Pricing() {
   }, [backfillData])
 
   const result = calcPricing(input)
+
+  // 自动保存历史记录到服务端
+  useAutoSaveHistory('pricing', input, result)
 
   useEffect(() => { saveToStorage(STORAGE_KEY, input) }, [input])
 

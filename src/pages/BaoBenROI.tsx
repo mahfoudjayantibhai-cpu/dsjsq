@@ -4,6 +4,7 @@ import { calcBaoBenROI, saveToStorage, loadFromStorage } from '../utils/calculat
 import { useGlobalSettings } from '../context/GlobalSettings'
 import { useDecimalInput } from '../components/DecimalInput'
 import { useHistoryBackfill } from '../hooks/useHistoryBackfill'
+import { useAutoSaveHistory } from '../hooks/useAutoSaveHistory'
 import type { BaoBenROIInput, SkuItem } from '../types'
 
 const STORAGE_KEY = 'bao_ben_roi'
@@ -39,6 +40,9 @@ export default function BaoBenROI() {
   }, [backfillData])
 
   const result = calcBaoBenROI(input)
+
+  // 自动保存历史记录到服务端
+  useAutoSaveHistory('roi', input, result)
 
   useEffect(() => {
     saveToStorage(STORAGE_KEY, input)

@@ -11,6 +11,12 @@
       "username": "kfai",
       "password_hash": "$2a$10$KFb7XBCQGiZ7y1kkHGxhsOJoz6RT11BWuXxFqk4AMBcxm/26mrP.y",
       "created_at": "2026-06-09T15:03:06.198Z"
+    },
+    {
+      "id": 3,
+      "username": "admin",
+      "password_hash": "$2a$10$oJlGhZ0.aZ9h3nMl6eARX.aZAO5SorgtcjsbTuinMyiOWyRfi6j.W",
+      "created_at": "2026-06-09T19:59:11.008Z"
     }
   ],
   "settings": [
@@ -29,6 +35,14 @@
       "default_misc_fee_rate": 0.01,
       "default_shipping_fee": 4,
       "default_loss_factor": 0.02
+    },
+    {
+      "user_id": 3,
+      "default_platform_fee_rate": 0.006,
+      "default_return_rate": 0.05,
+      "default_misc_fee_rate": 0.01,
+      "default_shipping_fee": 4,
+      "default_loss_factor": 0.02
     }
   ],
   "calculations": [],
@@ -36,7 +50,7 @@
   "tasks": [],
   "history": [],
   "counters": {
-    "users": 2,
+    "users": 3,
     "calculations": 0,
     "snapshots": 0,
     "tasks": 0,

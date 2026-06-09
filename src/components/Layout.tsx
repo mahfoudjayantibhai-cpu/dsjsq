@@ -2,6 +2,7 @@ import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Calculator, Tags, TrendingUp, BarChart3, Settings, Home, Target, Layers, Store, User, LogOut, Clock } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import SidebarHistoryPanel from './SidebarHistoryPanel'
 
 const navItems = [
   { to: '/', icon: Home, label: '首页' },
@@ -26,6 +27,10 @@ export default function Layout() {
     logout()
     navigate('/login')
   }
+
+  // 判断是否为计算器页面（显示历史侧栏）
+  const calculatorRoutes = ['/roi', '/pricing', '/profit', '/ad-roi', '/strategy', '/listing-roi']
+  const isCalculatorPage = calculatorRoutes.some(r => location.pathname.startsWith(r))
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -152,6 +157,7 @@ export default function Layout() {
           </div>
         </main>
       </div>
+      {isCalculatorPage && <SidebarHistoryPanel />}
     </div>
   )
 }

@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { HistoryProvider } from './context/HistoryContext'
+import { ToastProvider } from './context/ToastContext'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import BaoBenROI from './pages/BaoBenROI'
@@ -56,7 +58,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ProtectedRoutes />
+        <ToastProvider>
+          <HistoryProvider>
+            <ProtectedRoutes />
+          </HistoryProvider>
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   )
