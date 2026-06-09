@@ -1,18 +1,22 @@
-# Multi-stage Dockerfile: build with Node, serve with nginx
-FROM node:20-alpine AS builder
+FROM node:20-alpine AS frontend-builder
 WORKDIR /app
-
-# Install dependencies
 COPY package.json package-lock.json ./
-COPY tsconfig.json tsconfig.app.json tsconfig.node.json ./
-RUN npm ci --no-audit --silent
-
-# Copy source and build
+RUN npm ci --no-audit
 COPY . .
-RUN npm run build --silent
+RUN npm run build
 
-# Serve with nginx
-FROM nginx:stable-alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+FROM node:20-alpine
+WORKDIR /app
+COPY server/package.json server/package-lock.json ./server/
+RUN cd server && npm ci --no-audit
+COPY server/tsconfig.json ./server/
+COPY server/src ./server/src
+COPY server/data ./server/data
+COPY server/views ./server/views
+RUN cd server && npm run build
+RUN cd server && npm prune --production
+COPY --from=frontend-builder /app/dist ./dist
+
+ENV PORT=3000
+EXPOSE 3000
+CMD ["node", "server/dist/index.js"]
