@@ -54,7 +54,7 @@ function ProtectedRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter basename="/dsjsq">
+    <BrowserRouter>
       <AuthProvider>
         <ProtectedRoutes />
       </AuthProvider>
