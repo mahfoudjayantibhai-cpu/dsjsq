@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { Plus, Trash2, ArrowUpDown } from 'lucide-react'
 import { calcAdROI, saveToStorage, loadFromStorage } from '../utils/calculations'
 import { useGlobalSettings } from '../context/GlobalSettings'
+import { useHistoryBackfill } from '../hooks/useHistoryBackfill'
 import type { AdROIInput, AdPlan } from '../types'
 
 const STORAGE_KEY = 'ad_roi'
@@ -31,6 +32,7 @@ function useDecimalInput(value: number, onChange: (v: number) => void) {
 
 export default function AdROI() {
   const { settings } = useGlobalSettings()
+  const { backfillData } = useHistoryBackfill()
 
   const [input, setInput] = useState<AdROIInput>(() => {
     const saved = loadFromStorage(STORAGE_KEY) as AdROIInput | null
@@ -45,6 +47,14 @@ export default function AdROI() {
       breakevenROI: 3.5,
     }
   })
+
+  // 历史记录回填
+  useEffect(() => {
+    if (backfillData && backfillData.plans) {
+      setInput(backfillData as AdROIInput)
+      saveToStorage(STORAGE_KEY, backfillData)
+    }
+  }, [backfillData])
 
   const [sortKey, setSortKey] = useState<'realROI' | 'adRatio' | null>(null)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')

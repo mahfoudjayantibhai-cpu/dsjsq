@@ -93,5 +93,30 @@ export const api = {
     await fetch(`${API_BASE}/api/tasks/${id}`, {
       method: 'DELETE', headers: headers()
     })
+  },
+
+  // History
+  async getHistory(params?: { start?: string; end?: string }) {
+    const query = new URLSearchParams()
+    if (params?.start) query.set('start', params.start)
+    if (params?.end) query.set('end', params.end)
+    const qs = query.toString()
+    const res = await fetch(`${API_BASE}/api/history${qs ? '?' + qs : ''}`, { headers: headers() })
+    return res.json()
+  },
+  async getHistoryById(id: number) {
+    const res = await fetch(`${API_BASE}/api/history/${id}`, { headers: headers() })
+    if (!res.ok) throw new Error('记录不存在')
+    return res.json()
+  },
+  async deleteHistory(id: number) {
+    await fetch(`${API_BASE}/api/history/${id}`, {
+      method: 'DELETE', headers: headers()
+    })
+  },
+  async deleteAllHistory() {
+    await fetch(`${API_BASE}/api/history`, {
+      method: 'DELETE', headers: headers()
+    })
   }
 }

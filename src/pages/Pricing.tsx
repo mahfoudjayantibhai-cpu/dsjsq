@@ -3,12 +3,14 @@ import { TrendingUp, TrendingDown } from 'lucide-react'
 import { calcPricing, saveToStorage, loadFromStorage } from '../utils/calculations'
 import { useGlobalSettings } from '../context/GlobalSettings'
 import { useDecimalInput } from '../components/DecimalInput'
+import { useHistoryBackfill } from '../hooks/useHistoryBackfill'
 import type { PricingInput, PricingMode } from '../types'
 
 const STORAGE_KEY = 'pricing'
 
 export default function Pricing() {
   const { settings } = useGlobalSettings()
+  const { backfillData } = useHistoryBackfill()
 
   const [input, setInput] = useState<PricingInput>(() => {
     const saved = loadFromStorage(STORAGE_KEY) as PricingInput | null
@@ -23,6 +25,14 @@ export default function Pricing() {
       miscFeeRate: settings.defaultMiscFeeRate,
     }
   })
+
+  // 历史记录回填
+  useEffect(() => {
+    if (backfillData && backfillData.mode) {
+      setInput(backfillData as PricingInput)
+      saveToStorage(STORAGE_KEY, backfillData)
+    }
+  }, [backfillData])
 
   const result = calcPricing(input)
 

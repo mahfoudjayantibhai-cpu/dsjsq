@@ -3,12 +3,14 @@ import { Plus, Trash2, AlertTriangle } from 'lucide-react'
 import { calcBaoBenROI, saveToStorage, loadFromStorage } from '../utils/calculations'
 import { useGlobalSettings } from '../context/GlobalSettings'
 import { useDecimalInput } from '../components/DecimalInput'
+import { useHistoryBackfill } from '../hooks/useHistoryBackfill'
 import type { BaoBenROIInput, SkuItem } from '../types'
 
 const STORAGE_KEY = 'bao_ben_roi'
 
 export default function BaoBenROI() {
   const { settings } = useGlobalSettings()
+  const { backfillData } = useHistoryBackfill()
 
   const [input, setInput] = useState<BaoBenROIInput>(() => {
     const saved = loadFromStorage(STORAGE_KEY) as BaoBenROIInput | null
@@ -27,6 +29,14 @@ export default function BaoBenROI() {
       miscFeeRate: settings.defaultMiscFeeRate,
     }
   })
+
+  // 历史记录回填
+  useEffect(() => {
+    if (backfillData && backfillData.mode) {
+      setInput(backfillData as BaoBenROIInput)
+      saveToStorage(STORAGE_KEY, backfillData)
+    }
+  }, [backfillData])
 
   const result = calcBaoBenROI(input)
 

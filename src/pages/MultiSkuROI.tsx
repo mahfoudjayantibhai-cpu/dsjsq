@@ -8,6 +8,7 @@ import {
 import { saveToStorage, loadFromStorage } from '../utils/calculations'
 import { useGlobalSettings } from '../context/GlobalSettings'
 import { DecimalInput } from '../components/DecimalInput'
+import { useHistoryBackfill } from '../hooks/useHistoryBackfill'
 import type { ListingROIInput, ListingSku, SkuCostBreakdown } from '../types'
 
 const STORAGE_KEY = 'multi_sku_roi_v2'
@@ -28,6 +29,7 @@ function SectionTitle({ step, title, desc }: { step: number; title: string; desc
 
 export default function MultiSkuROI() {
   const { settings } = useGlobalSettings()
+  const { backfillData } = useHistoryBackfill()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [showStepDetail, setShowStepDetail] = useState(true)
 
@@ -73,6 +75,14 @@ export default function MultiSkuROI() {
   })
 
   useEffect(() => { saveToStorage(STORAGE_KEY, input) }, [input])
+
+  // 历史记录回填
+  useEffect(() => {
+    if (backfillData && backfillData.skus) {
+      setInput(backfillData as ListingROIInput)
+      saveToStorage(STORAGE_KEY, backfillData)
+    }
+  }, [backfillData])
 
   const update = useCallback((patch: Partial<ListingROIInput>) => {
     setInput(prev => ({ ...prev, ...patch }))

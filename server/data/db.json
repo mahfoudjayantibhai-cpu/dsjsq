@@ -1,0 +1,45 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "test_diag2",
+      "password_hash": "$2a$10$HGqMQeHmlRFPg3KnVOFV6.SOHlNi2otOzNBT7IERSQgliA0FbychG",
+      "created_at": "2026-06-09T14:44:22.426Z"
+    },
+    {
+      "id": 2,
+      "username": "kfai",
+      "password_hash": "$2a$10$KFb7XBCQGiZ7y1kkHGxhsOJoz6RT11BWuXxFqk4AMBcxm/26mrP.y",
+      "created_at": "2026-06-09T15:03:06.198Z"
+    }
+  ],
+  "settings": [
+    {
+      "user_id": 1,
+      "default_platform_fee_rate": 0.006,
+      "default_return_rate": 0.05,
+      "default_misc_fee_rate": 0.01,
+      "default_shipping_fee": 4,
+      "default_loss_factor": 0.02
+    },
+    {
+      "user_id": 2,
+      "default_platform_fee_rate": 0.006,
+      "default_return_rate": 0.05,
+      "default_misc_fee_rate": 0.01,
+      "default_shipping_fee": 4,
+      "default_loss_factor": 0.02
+    }
+  ],
+  "calculations": [],
+  "snapshots": [],
+  "tasks": [],
+  "history": [],
+  "counters": {
+    "users": 2,
+    "calculations": 0,
+    "snapshots": 0,
+    "tasks": 0,
+    "history": 0
+  }
+}

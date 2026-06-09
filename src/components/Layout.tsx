@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Calculator, Tags, TrendingUp, BarChart3, Settings, Home, Target, Layers, Store, User, LogOut } from 'lucide-react'
+import { Calculator, Tags, TrendingUp, BarChart3, Settings, Home, Target, Layers, Store, User, LogOut, Clock } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 
@@ -13,6 +13,7 @@ const navItems = [
   { to: '/listing-roi', icon: Layers, label: '链接投产' },
   { to: '/shop-overview', icon: Store, label: '店铺总览' },
   { to: '/settings', icon: Settings, label: '全局设置' },
+  { to: '/history', icon: Clock, label: '历史记录' },
 ]
 
 export default function Layout() {

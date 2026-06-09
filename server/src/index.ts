@@ -11,6 +11,7 @@ import settingsRoutes from './routes/settings.js'
 import calculatorRoutes from './routes/calculator.js'
 import snapshotRoutes from './routes/snapshots.js'
 import taskRoutes from './routes/tasks.js'
+import historyRoutes from './routes/history.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -21,17 +22,16 @@ const ADMIN_PASS = process.env.ADMIN_PASS || 'kaifeng2026'
 
 app.use(cors({ origin: true, credentials: true }))
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
-
-// Watermark header
-app.use((_req, res, next) => {
-  res.setHeader('X-Powered-By', '凯峰Ai')
-  next()
-})
 
 // Static files - serve built frontend
 const clientDist = path.join(__dirname, '..', '..', 'dist')
 app.use(express.static(clientDist))
+
+app.get('/api/test', (_req, res) => {
+  res.json({ ok: true, time: new Date().toISOString() })
+})
 
 // API routes
 app.use('/api/auth', authRoutes)
@@ -39,6 +39,7 @@ app.use('/api/settings', settingsRoutes)
 app.use('/api/calculate', calculatorRoutes)
 app.use('/api/snapshots', snapshotRoutes)
 app.use('/api/tasks', taskRoutes)
+app.use('/api/history', historyRoutes)
 
 // ===== Admin panel =====
 app.set('views', path.join(__dirname, '..', 'views'))

@@ -10,6 +10,7 @@ import PriceStrategy from './pages/PriceStrategy'
 import MultiSkuROI from './pages/MultiSkuROI'
 import ShopOverview from './pages/ShopOverview'
 import Settings from './pages/Settings'
+import History from './pages/History'
 import Login from './pages/Login'
 
 function ProtectedRoutes() {
@@ -44,6 +45,7 @@ function ProtectedRoutes() {
         <Route path="listing-roi" element={<MultiSkuROI />} />
         <Route path="shop-overview" element={<ShopOverview />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="history" element={<History />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

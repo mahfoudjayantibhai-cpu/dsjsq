@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { TrendingUp, Tag, Zap, AlertTriangle, CheckCircle, Percent, ArrowUpRight, Shield, Gauge, X, Plus, DollarSign, Users } from 'lucide-react'
 import { calcPriceCompare, calcInflatedPrice, saveToStorage, loadFromStorage } from '../utils/calculations'
 import { useGlobalSettings } from '../context/GlobalSettings'
 import { useDecimalInput } from '../components/DecimalInput'
+import { useHistoryBackfill } from '../hooks/useHistoryBackfill'
 import type { CompetitorPrice, PriceCompareResult, InflatedPriceResult, StrategyType, Aggressiveness } from '../types'
 
 const STORAGE_KEY_COMPARE = 'price_compare_input'
@@ -12,6 +13,18 @@ type TabId = 'compare' | 'inflated'
 
 export default function PriceStrategy() {
   const [tab, setTab] = useState<TabId>('compare')
+  const { backfillData } = useHistoryBackfill()
+
+  // 历史记录回填：根据数据特征自动切换 tab
+  useEffect(() => {
+    if (!backfillData) return
+    if ('myPrice' in backfillData || 'competitors' in backfillData) {
+      setTab('compare')
+    } else if ('strategyType' in backfillData) {
+      setTab('inflated')
+    }
+  }, [backfillData])
+
   return (
     <div className="max-w-6xl mx-auto space-y-4">
       <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
@@ -37,14 +50,14 @@ export default function PriceStrategy() {
         </button>
       </div>
 
-      {tab === 'compare' ? <ComparePanel /> : <InflatedPanel />}
+      {tab === 'compare' ? <ComparePanel backfillData={backfillData} /> : <InflatedPanel backfillData={backfillData} />}
     </div>
   )
 }
 
 // ==================== 比价分析面板 ====================
 
-function ComparePanel() {
+function ComparePanel({ backfillData }: { backfillData: any }) {
   const { settings } = useGlobalSettings()
 
   const saved = loadFromStorage(STORAGE_KEY_COMPARE) as Record<string, unknown> | null
@@ -57,6 +70,17 @@ function ComparePanel() {
       { id: '3', name: '竞品C', price: 0 },
     ]
   )
+
+  // 历史记录回填
+  useEffect(() => {
+    if (!backfillData || !('myPrice' in backfillData)) return
+    setMyPrice(backfillData.myPrice || 0)
+    setMyCost(backfillData.myCost || 0)
+    if (backfillData.competitors) {
+      setCompetitors(backfillData.competitors)
+      saveToStorage(STORAGE_KEY_COMPARE, backfillData)
+    }
+  }, [backfillData])
 
   const update = useCallback(() => {
     saveToStorage(STORAGE_KEY_COMPARE, { myPrice, myCost, competitors })
@@ -268,7 +292,7 @@ const AGGRESSIVE_OPTIONS: { key: Aggressiveness; label: string; desc: string; co
   { key: 'aggressive', label: '激进', desc: '加价 105%', color: 'bg-red-100 text-red-700 border-red-300' },
 ]
 
-function InflatedPanel() {
+function InflatedPanel({ backfillData }: { backfillData: any }) {
   const { settings } = useGlobalSettings()
 
   const saved = loadFromStorage(STORAGE_KEY_INFLATED) as Record<string, unknown> | null
@@ -276,6 +300,16 @@ function InflatedPanel() {
   const [cost, setCost] = useState<number>((saved?.cost as number) || 0)
   const [strategyType, setStrategyType] = useState<StrategyType>((saved?.strategyType as StrategyType) || 'flash_sale')
   const [aggressiveness, setAggressiveness] = useState<Aggressiveness>((saved?.aggressiveness as Aggressiveness) || 'moderate')
+
+  // 历史记录回填
+  useEffect(() => {
+    if (!backfillData || !('strategyType' in backfillData)) return
+    setTargetRealPrice(backfillData.targetRealPrice || 0)
+    setCost(backfillData.cost || 0)
+    setStrategyType(backfillData.strategyType || 'flash_sale')
+    setAggressiveness(backfillData.aggressiveness || 'moderate')
+    saveToStorage(STORAGE_KEY_INFLATED, backfillData)
+  }, [backfillData])
 
   const update = useCallback(() => {
     saveToStorage(STORAGE_KEY_INFLATED, { targetRealPrice, cost, strategyType, aggressiveness })

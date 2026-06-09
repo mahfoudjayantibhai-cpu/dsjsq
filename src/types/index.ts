@@ -311,3 +311,32 @@ export interface ListingROIResult {
   /** 动态调整提醒 */
   adjustments: string[];
 }
+
+// ==================== 历史记录类型 ====================
+
+export interface CalculationHistory {
+  id: number;
+  user_id: number;
+  calc_type: string;
+  input_data: string;   // JSON string
+  result_data: string;  // JSON string
+  created_at: string;
+}
+
+export const CALC_TYPE_LABELS: Record<string, string> = {
+  'roi': '保本投产比',
+  'pricing': '商品定价',
+  'profit': '利润分析',
+  'ad-roi': '广告ROI',
+  'strategy': '比价策略',
+  'listing-roi': '链接投产',
+}
+
+export const CALC_TYPE_ROUTES: Record<string, string> = {
+  'roi': '/roi',
+  'pricing': '/pricing',
+  'profit': '/profit',
+  'ad-roi': '/ad-roi',
+  'strategy': '/strategy',
+  'listing-roi': '/listing-roi',
+}

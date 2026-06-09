@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
 import { calcProfit, saveToStorage, loadFromStorage } from '../utils/calculations'
 import { useGlobalSettings } from '../context/GlobalSettings'
 import { useDecimalInput } from '../components/DecimalInput'
+import { useHistoryBackfill } from '../hooks/useHistoryBackfill'
 import type { ProfitInput, ProfitLevel } from '../types'
 
 const STORAGE_KEY = 'profit'
@@ -10,6 +11,7 @@ const COLORS = ['#3b82f6', '#f97316', '#8b5cf6', '#ef4444', '#6b7280', '#10b981'
 
 export default function ProfitAnalysis() {
   const { settings } = useGlobalSettings()
+  const { backfillData } = useHistoryBackfill()
 
   const [input, setInput] = useState<ProfitInput>(() => {
     const saved = loadFromStorage(STORAGE_KEY) as ProfitInput | null
@@ -29,6 +31,14 @@ export default function ProfitAnalysis() {
       miscFeeRate: settings.defaultMiscFeeRate,
     }
   })
+
+  // 历史记录回填
+  useEffect(() => {
+    if (backfillData && backfillData.level) {
+      setInput(backfillData as ProfitInput)
+      saveToStorage(STORAGE_KEY, backfillData)
+    }
+  }, [backfillData])
 
   const result = calcProfit(input)
 

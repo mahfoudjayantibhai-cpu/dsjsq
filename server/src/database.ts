@@ -11,7 +11,8 @@ interface DB {
   calculations: any[]
   snapshots: any[]
   tasks: any[]
-  counters: { users: number; calculations: number; snapshots: number; tasks: number }
+  history: any[]
+  counters: { users: number; calculations: number; snapshots: number; tasks: number; history: number }
 }
 
 let db: DB
@@ -23,8 +24,8 @@ function loadDb(): DB {
     return JSON.parse(fs.readFileSync(file, 'utf-8'))
   }
   const fresh: DB = {
-    users: [], settings: [], calculations: [], snapshots: [], tasks: [],
-    counters: { users: 0, calculations: 0, snapshots: 0, tasks: 0 }
+    users: [], settings: [], calculations: [], snapshots: [], tasks: [], history: [],
+    counters: { users: 0, calculations: 0, snapshots: 0, tasks: 0, history: 0 }
   }
   saveDb(fresh)
   return fresh
@@ -154,6 +155,58 @@ export function updateTask(taskId: number, userId: number, data: any) {
 
 export function deleteTask(taskId: number, userId: number) {
   db.tasks = db.tasks.filter(t => !(t.id === taskId && t.user_id === userId))
+  saveDb(db)
+}
+
+// ===== History =====
+export interface HistoryRecord {
+  id: number
+  user_id: number
+  calc_type: string
+  input_data: string
+  result_data: string
+  created_at: string
+}
+
+export function saveHistory(userId: number, calcType: string, input: any, result: any) {
+  db.counters.history++
+  db.history.push({
+    id: db.counters.history,
+    user_id: userId,
+    calc_type: calcType,
+    input_data: JSON.stringify(input),
+    result_data: JSON.stringify(result),
+    created_at: new Date().toISOString()
+  })
+  // 最多保留 500 条
+  if (db.history.length > 500) {
+    db.history = db.history.slice(-500)
+  }
+  saveDb(db)
+}
+
+export function getHistory(userId: number, start?: string, end?: string): HistoryRecord[] {
+  let records = db.history.filter(h => h.user_id === userId)
+  if (start) {
+    records = records.filter(h => h.created_at >= start)
+  }
+  if (end) {
+    records = records.filter(h => h.created_at <= end)
+  }
+  return records.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+}
+
+export function getHistoryById(historyId: number, userId: number): HistoryRecord | null {
+  return db.history.find(h => h.id === historyId && h.user_id === userId) || null
+}
+
+export function deleteHistory(historyId: number, userId: number) {
+  db.history = db.history.filter(h => !(h.id === historyId && h.user_id === userId))
+  saveDb(db)
+}
+
+export function deleteAllHistory(userId: number) {
+  db.history = db.history.filter(h => h.user_id !== userId)
   saveDb(db)
 }
 
